@@ -4,18 +4,43 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Mail, Send, FileText, Calendar, Plane, Building, ClipboardList, BarChart3 } from "lucide-react";
+import RecipientSelector from '../components/RecipientSelector';
+import LeaveForm from '../components/LeaveForm';
+import TripForm from '../components/TripForm';
+import ReportForm from '../components/ReportForm';
+import { Recipient } from '../data/recipients';
 
 const Index = () => {
   const [formData, setFormData] = useState({
-    recipient: '',
+    recipients: [] as Recipient[],
     subject: '',
     template: '',
-    additionalInfo: '',
     language: 'korean'
+  });
+
+  const [templateFormData, setTemplateFormData] = useState({
+    leave: {
+      startDate: '',
+      endDate: '',
+      period: '',
+      reason: ''
+    },
+    trip: {
+      startDate: '',
+      endDate: '',
+      destination: '',
+      purpose: '',
+      accommodation: ''
+    },
+    report: {
+      startDate: '',
+      endDate: '',
+      relatedLinks: '',
+      content: ''
+    }
   });
 
   const [generatedEmail, setGeneratedEmail] = useState('');
@@ -36,7 +61,7 @@ const Index = () => {
     { value: 'chinese', label: '中文' }
   ];
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | Recipient[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -44,16 +69,61 @@ const Index = () => {
   };
 
   const handleGenerate = () => {
-    // 실제로는 여기서 LLM API 호출
     setGeneratedEmail("이메일이 생성되었습니다. (실제 구현 시 LLM API를 통해 생성됩니다)");
   };
 
   const selectedTemplate = templates.find(t => t.id === formData.template);
 
+  const renderTemplateForm = () => {
+    switch (formData.template) {
+      case 'annual_leave':
+        return (
+          <LeaveForm
+            data={templateFormData.leave}
+            onChange={(data) => setTemplateFormData(prev => ({ ...prev, leave: data }))}
+            isHalfDay={false}
+          />
+        );
+      case 'half_day_leave':
+        return (
+          <LeaveForm
+            data={templateFormData.leave}
+            onChange={(data) => setTemplateFormData(prev => ({ ...prev, leave: data }))}
+            isHalfDay={true}
+          />
+        );
+      case 'business_trip':
+        return (
+          <TripForm
+            data={templateFormData.trip}
+            onChange={(data) => setTemplateFormData(prev => ({ ...prev, trip: data }))}
+            isDispatch={false}
+          />
+        );
+      case 'dispatch':
+        return (
+          <TripForm
+            data={templateFormData.trip}
+            onChange={(data) => setTemplateFormData(prev => ({ ...prev, trip: data }))}
+            isDispatch={true}
+          />
+        );
+      case 'work_report':
+      case 'weekly_report':
+        return (
+          <ReportForm
+            data={templateFormData.report}
+            onChange={(data) => setTemplateFormData(prev => ({ ...prev, report: data }))}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
             <Mail className="h-6 w-6 text-gray-700 mr-2" />
@@ -63,7 +133,6 @@ const Index = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Panel - Form */}
           <div className="space-y-6">
             <Card className="border border-gray-200 shadow-sm">
               <CardHeader className="border-b border-gray-100 pb-4">
@@ -73,7 +142,6 @@ const Index = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-6 space-y-6">
-                {/* Template Selection */}
                 <div>
                   <Label className="text-sm font-medium text-gray-900 mb-3 block">템플릿 선택</Label>
                   <div className="flex flex-wrap gap-2">
@@ -98,61 +166,49 @@ const Index = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <Label htmlFor="recipient" className="text-sm font-medium text-gray-900">받는 사람</Label>
-                    <Input
-                      id="recipient"
-                      placeholder="manager@company.com"
-                      value={formData.recipient}
-                      onChange={(e) => handleInputChange('recipient', e.target.value)}
-                      className="mt-1 border-gray-300 focus:border-gray-500 focus:ring-gray-500"
-                    />
-                  </div>
+                <RecipientSelector
+                  selectedRecipients={formData.recipients}
+                  onRecipientsChange={(recipients) => handleInputChange('recipients', recipients)}
+                />
 
-                  <div>
-                    <Label htmlFor="subject" className="text-sm font-medium text-gray-900">제목</Label>
-                    <Input
-                      id="subject"
-                      placeholder="이메일 제목을 입력하세요"
-                      value={formData.subject}
-                      onChange={(e) => handleInputChange('subject', e.target.value)}
-                      className="mt-1 border-gray-300 focus:border-gray-500 focus:ring-gray-500"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="language" className="text-sm font-medium text-gray-900">언어</Label>
-                    <Select value={formData.language} onValueChange={(value) => handleInputChange('language', value)}>
-                      <SelectTrigger className="mt-1 border-gray-300 focus:border-gray-500 focus:ring-gray-500">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {languages.map((lang) => (
-                          <SelectItem key={lang.value} value={lang.value}>
-                            {lang.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="additionalInfo" className="text-sm font-medium text-gray-900">추가 정보</Label>
-                    <Textarea
-                      id="additionalInfo"
-                      placeholder="날짜, 사유, 기간 등 이메일에 포함될 구체적인 내용을 입력해주세요"
-                      value={formData.additionalInfo}
-                      onChange={(e) => handleInputChange('additionalInfo', e.target.value)}
-                      className="mt-1 border-gray-300 focus:border-gray-500 focus:ring-gray-500 min-h-[120px]"
-                    />
-                  </div>
+                <div>
+                  <Label htmlFor="subject" className="text-sm font-medium text-gray-900">제목</Label>
+                  <Input
+                    id="subject"
+                    placeholder="이메일 제목을 입력하세요"
+                    value={formData.subject}
+                    onChange={(e) => handleInputChange('subject', e.target.value)}
+                    className="mt-1 border-gray-300 focus:border-gray-500 focus:ring-gray-500"
+                  />
                 </div>
+
+                <div>
+                  <Label htmlFor="language" className="text-sm font-medium text-gray-900">언어</Label>
+                  <Select value={formData.language} onValueChange={(value) => handleInputChange('language', value)}>
+                    <SelectTrigger className="mt-1 border-gray-300 focus:border-gray-500 focus:ring-gray-500">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {languages.map((lang) => (
+                        <SelectItem key={lang.value} value={lang.value}>
+                          {lang.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {formData.template && (
+                  <div className="pt-4 border-t border-gray-200">
+                    <Label className="text-sm font-medium text-gray-900 mb-4 block">상세 정보</Label>
+                    {renderTemplateForm()}
+                  </div>
+                )}
 
                 <Button 
                   onClick={handleGenerate}
                   className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3"
-                  disabled={!formData.template || !formData.recipient || !formData.subject}
+                  disabled={!formData.template || formData.recipients.length === 0 || !formData.subject}
                 >
                   <Send className="h-4 w-4 mr-2" />
                   이메일 생성하기
@@ -161,7 +217,6 @@ const Index = () => {
             </Card>
           </div>
 
-          {/* Right Panel - Preview */}
           <div className="space-y-6">
             <Card className="border border-gray-200 shadow-sm">
               <CardHeader className="border-b border-gray-100 pb-4">
@@ -175,7 +230,7 @@ const Index = () => {
                   <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                     <div className="mb-4 pb-4 border-b border-gray-200">
                       <div className="text-sm text-gray-600 mb-2">
-                        <span className="font-medium">받는 사람:</span> {formData.recipient}
+                        <span className="font-medium">받는 사람:</span> {formData.recipients.map(r => r.email).join(', ')}
                       </div>
                       <div className="text-sm text-gray-600">
                         <span className="font-medium">제목:</span> {formData.subject}
