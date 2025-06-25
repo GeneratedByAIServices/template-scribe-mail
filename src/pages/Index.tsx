@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Send, FileText, Calendar, Plane, Building, ClipboardList, BarChart3 } from "lucide-react";
+import { Mail, Send, FileText, Calendar, Plane, Building, ClipboardList, BarChart3, Languages } from "lucide-react";
 import RecipientSelector from '../components/RecipientSelector';
 import LeaveForm from '../components/LeaveForm';
 import TripForm from '../components/TripForm';
@@ -17,8 +17,7 @@ const Index = () => {
   const [formData, setFormData] = useState({
     recipients: [] as Recipient[],
     subject: '',
-    template: '',
-    language: 'korean'
+    template: ''
   });
 
   const [templateFormData, setTemplateFormData] = useState({
@@ -44,6 +43,8 @@ const Index = () => {
   });
 
   const [generatedEmail, setGeneratedEmail] = useState('');
+  const [currentLanguage, setCurrentLanguage] = useState('korean');
+  const [isTranslating, setIsTranslating] = useState(false);
 
   const templates = [
     { id: 'annual_leave', name: '연차 신청', icon: Calendar },
@@ -69,7 +70,35 @@ const Index = () => {
   };
 
   const handleGenerate = () => {
-    setGeneratedEmail("이메일이 생성되었습니다. (실제 구현 시 LLM API를 통해 생성됩니다)");
+    setGeneratedEmail("안녕하세요,\n\n위와 같이 신청드리오니 검토 후 승인 부탁드립니다.\n\n감사합니다.");
+    setCurrentLanguage('korean');
+  };
+
+  const handleTranslate = async (targetLanguage: string) => {
+    if (!generatedEmail || targetLanguage === currentLanguage) return;
+    
+    setIsTranslating(true);
+    
+    // 실제 구현에서는 LLM API 호출
+    setTimeout(() => {
+      let translatedText = '';
+      switch (targetLanguage) {
+        case 'english':
+          translatedText = "Hello,\n\nI would like to request as mentioned above. Please review and approve.\n\nThank you.";
+          break;
+        case 'japanese':
+          translatedText = "こんにちは、\n\n上記の通り申請いたします。ご検討の上、承認をお願いいたします。\n\nありがとうございます。";
+          break;
+        case 'chinese':
+          translatedText = "您好，\n\n如上所述提出申请，请审核后批准。\n\n谢谢。";
+          break;
+        default:
+          translatedText = "안녕하세요,\n\n위와 같이 신청드리오니 검토 후 승인 부탁드립니다.\n\n감사합니다.";
+      }
+      setGeneratedEmail(translatedText);
+      setCurrentLanguage(targetLanguage);
+      setIsTranslating(false);
+    }, 1000);
   };
 
   const selectedTemplate = templates.find(t => t.id === formData.template);
@@ -122,7 +151,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-6 font-noto">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
@@ -182,22 +211,6 @@ const Index = () => {
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="language" className="text-sm font-medium text-gray-900">언어</Label>
-                  <Select value={formData.language} onValueChange={(value) => handleInputChange('language', value)}>
-                    <SelectTrigger className="mt-1 border-gray-300 focus:border-gray-500 focus:ring-gray-500">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {languages.map((lang) => (
-                        <SelectItem key={lang.value} value={lang.value}>
-                          {lang.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 {formData.template && (
                   <div className="pt-4 border-t border-gray-200">
                     <Label className="text-sm font-medium text-gray-900 mb-4 block">상세 정보</Label>
@@ -220,10 +233,35 @@ const Index = () => {
           <div className="space-y-6">
             <Card className="border border-gray-200 shadow-sm">
               <CardHeader className="border-b border-gray-100 pb-4">
-                <CardTitle className="text-lg font-medium text-gray-900">생성된 이메일</CardTitle>
-                <CardDescription className="text-gray-600">
-                  AI가 생성한 이메일 내용을 확인하세요
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg font-medium text-gray-900">생성된 이메일</CardTitle>
+                    <CardDescription className="text-gray-600">
+                      AI가 생성한 이메일 내용을 확인하세요
+                    </CardDescription>
+                  </div>
+                  {generatedEmail && (
+                    <div className="flex items-center gap-2">
+                      <Languages className="h-4 w-4 text-gray-500" />
+                      <Select 
+                        value={currentLanguage} 
+                        onValueChange={handleTranslate}
+                        disabled={isTranslating}
+                      >
+                        <SelectTrigger className="w-[120px] h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {languages.map((lang) => (
+                            <SelectItem key={lang.value} value={lang.value} className="text-xs">
+                              {lang.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
               </CardHeader>
               <CardContent className="pt-6">
                 {generatedEmail ? (
@@ -241,7 +279,14 @@ const Index = () => {
                         </div>
                       )}
                     </div>
-                    <div className="text-gray-800 whitespace-pre-wrap">{generatedEmail}</div>
+                    <div className="text-gray-800 whitespace-pre-wrap relative">
+                      {isTranslating && (
+                        <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded">
+                          <div className="text-sm text-gray-500">번역 중...</div>
+                        </div>
+                      )}
+                      {generatedEmail}
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-12 text-gray-500">

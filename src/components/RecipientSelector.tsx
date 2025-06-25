@@ -27,13 +27,20 @@ const RecipientSelector = ({ selectedRecipients, onRecipientsChange }: Recipient
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const filteredRecipients = recipients.filter(recipient => 
-    !selectedRecipients.find(selected => selected.id === recipient.id) &&
-    (recipient.name.toLowerCase().includes(search.toLowerCase()) ||
-     recipient.email.toLowerCase().includes(search.toLowerCase()) ||
-     recipient.position.toLowerCase().includes(search.toLowerCase()) ||
-     recipient.role.toLowerCase().includes(search.toLowerCase()))
-  );
+  const filteredRecipients = recipients.filter(recipient => {
+    if (selectedRecipients.find(selected => selected.id === recipient.id)) {
+      return false;
+    }
+    
+    const searchTerm = search.toLowerCase();
+    return (
+      recipient.name.toLowerCase().includes(searchTerm) ||
+      recipient.email.toLowerCase().includes(searchTerm) ||
+      recipient.position.toLowerCase().includes(searchTerm) ||
+      recipient.role.toLowerCase().includes(searchTerm) ||
+      (recipient.department && recipient.department.toLowerCase().includes(searchTerm))
+    );
+  });
 
   const handleSelect = (recipient: Recipient) => {
     onRecipientsChange([...selectedRecipients, recipient]);
@@ -77,7 +84,10 @@ const RecipientSelector = ({ selectedRecipients, onRecipientsChange }: Recipient
               <CommandInput 
                 placeholder="이름, 이메일, 직급으로 검색..."
                 value={search}
-                onValueChange={setSearch}
+                onValueChange={(value) => {
+                  console.log('Search value changed:', value);
+                  setSearch(value);
+                }}
                 className="border-0"
               />
               <CommandList className="max-h-48">
