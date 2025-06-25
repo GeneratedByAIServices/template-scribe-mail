@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Send, FileText, Calendar, Plane, Building, ClipboardList, BarChart3, Languages } from "lucide-react";
+import { Mail, Send, FileText, Calendar, Plane, Building, ClipboardList, BarChart3 } from "lucide-react";
 import RecipientSelector from '../components/RecipientSelector';
 import LeaveForm from '../components/LeaveForm';
 import TripForm from '../components/TripForm';
@@ -43,6 +43,7 @@ const Index = () => {
   });
 
   const [generatedEmail, setGeneratedEmail] = useState('');
+  const [translatedSubject, setTranslatedSubject] = useState('');
   const [currentLanguage, setCurrentLanguage] = useState('korean');
   const [isTranslating, setIsTranslating] = useState(false);
 
@@ -71,6 +72,7 @@ const Index = () => {
 
   const handleGenerate = () => {
     setGeneratedEmail("안녕하세요,\n\n위와 같이 신청드리오니 검토 후 승인 부탁드립니다.\n\n감사합니다.");
+    setTranslatedSubject(formData.subject);
     setCurrentLanguage('korean');
   };
 
@@ -82,20 +84,28 @@ const Index = () => {
     // 실제 구현에서는 LLM API 호출
     setTimeout(() => {
       let translatedText = '';
+      let translatedSubjectText = '';
+      
       switch (targetLanguage) {
         case 'english':
           translatedText = "Hello,\n\nI would like to request as mentioned above. Please review and approve.\n\nThank you.";
+          translatedSubjectText = formData.subject ? `Request: ${formData.subject}` : '';
           break;
         case 'japanese':
           translatedText = "こんにちは、\n\n上記の通り申請いたします。ご検討の上、承認をお願いいたします。\n\nありがとうございます。";
+          translatedSubjectText = formData.subject ? `申請: ${formData.subject}` : '';
           break;
         case 'chinese':
           translatedText = "您好，\n\n如上所述提出申请，请审核后批准。\n\n谢谢。";
+          translatedSubjectText = formData.subject ? `申请: ${formData.subject}` : '';
           break;
         default:
           translatedText = "안녕하세요,\n\n위와 같이 신청드리오니 검토 후 승인 부탁드립니다.\n\n감사합니다.";
+          translatedSubjectText = formData.subject;
       }
+      
       setGeneratedEmail(translatedText);
+      setTranslatedSubject(translatedSubjectText);
       setCurrentLanguage(targetLanguage);
       setIsTranslating(false);
     }, 1000);
@@ -242,7 +252,6 @@ const Index = () => {
                   </div>
                   {generatedEmail && (
                     <div className="flex items-center gap-2">
-                      <Languages className="h-4 w-4 text-gray-500" />
                       <Select 
                         value={currentLanguage} 
                         onValueChange={handleTranslate}
@@ -271,13 +280,8 @@ const Index = () => {
                         <span className="font-medium">받는 사람:</span> {formData.recipients.map(r => r.email).join(', ')}
                       </div>
                       <div className="text-sm text-gray-600">
-                        <span className="font-medium">제목:</span> {formData.subject}
+                        <span className="font-bold">제목:</span> {translatedSubject || formData.subject}
                       </div>
-                      {selectedTemplate && (
-                        <div className="text-sm text-gray-600 mt-2">
-                          <span className="font-medium">템플릿:</span> {selectedTemplate.name}
-                        </div>
-                      )}
                     </div>
                     <div className="text-gray-800 whitespace-pre-wrap relative">
                       {isTranslating && (

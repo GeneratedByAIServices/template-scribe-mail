@@ -28,18 +28,31 @@ const RecipientSelector = ({ selectedRecipients, onRecipientsChange }: Recipient
   }, []);
 
   const filteredRecipients = recipients.filter(recipient => {
+    // 이미 선택된 받는 사람은 제외
     if (selectedRecipients.find(selected => selected.id === recipient.id)) {
       return false;
     }
     
-    const searchTerm = search.toLowerCase();
-    return (
-      recipient.name.toLowerCase().includes(searchTerm) ||
-      recipient.email.toLowerCase().includes(searchTerm) ||
-      recipient.position.toLowerCase().includes(searchTerm) ||
-      recipient.role.toLowerCase().includes(searchTerm) ||
-      (recipient.department && recipient.department.toLowerCase().includes(searchTerm))
-    );
+    // 검색어가 없으면 모든 받는 사람 표시
+    if (!search.trim()) {
+      return true;
+    }
+    
+    const searchTerm = search.toLowerCase().trim();
+    console.log('Searching for:', searchTerm);
+    console.log('Checking recipient:', recipient);
+    
+    // 각 필드에서 검색어 포함 여부 확인
+    const matchesName = recipient.name.toLowerCase().includes(searchTerm);
+    const matchesEmail = recipient.email.toLowerCase().includes(searchTerm);
+    const matchesPosition = recipient.position.toLowerCase().includes(searchTerm);
+    const matchesRole = recipient.role.toLowerCase().includes(searchTerm);
+    const matchesDepartment = recipient.department && recipient.department.toLowerCase().includes(searchTerm);
+    
+    const isMatch = matchesName || matchesEmail || matchesPosition || matchesRole || matchesDepartment;
+    console.log('Match result:', isMatch, { matchesName, matchesEmail, matchesPosition, matchesRole, matchesDepartment });
+    
+    return isMatch;
   });
 
   const handleSelect = (recipient: Recipient) => {
