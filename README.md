@@ -1,6 +1,6 @@
-# 솔루션링크 이메일 비서 (Solution-Link Email Assistant)
+# 솔링크 메일 어시스턴트
 
-솔루션링크 이메일 비서는 AI를 활용하여 복잡하고 번거로운 업무용 이메일 작성을 돕는 웹 애플리케이션입니다. 휴가 신청, 출장 보고, 업무 보고 등 다양한 상황에 맞는 템플릿을 제공하여, 사용자가 몇 번의 클릭만으로 전문적인 형식의 이메일을 쉽고 빠르게 생성할 수 있도록 지원합니다.
+솔링크 메일 어시스턴트는 AI를 활용하여 복잡하고 번거로운 업무용 이메일 작성을 돕는 웹 애플리케이션입니다. 휴가 신청, 출장 보고, 업무 보고 등 다양한 상황에 맞는 템플릿을 제공하여, 사용자가 몇 번의 클릭만으로 전문적인 형식의 이메일을 쉽고 빠르게 생성할 수 있도록 지원합니다.
 
 ## ✨ 주요 기능
 
@@ -19,21 +19,35 @@
 
 ## 🛠️ 사용 기술
 
-- **Frontend**: React, TypeScript, Vite
-- **Styling**: Tailwind CSS, shadcn/ui
+- **프론트엔드**: React, TypeScript, Vite
+- **스타일링**: Tailwind CSS, shadcn/ui
 - **AI**: Google Gemini
-- **Libraries**: date-fns, lucide-react, sonner
+- **라이브러리**: date-fns, lucide-react, sonner
 
-## 🚀 로컬에서 실행하기
+## 🚀 시작하기
+
+### 사전 준비
+
+이 프로젝트는 Google Gemini API를 사용하므로, API 키를 발급받아야 합니다.
+
+1.  [Google AI Studio](https://aistudio.google.com/app/apikey)에 방문하여 API 키를 생성합니다.
+2.  프로젝트의 루트 디렉터리(`template-scribe-mail`)에 `.env.local` 파일을 생성합니다.
+3.  생성된 파일에 다음과 같이 API 키를 추가합니다.
+
+    ```
+    VITE_GEMINI_API_KEY=여러분의_API_키를_입력하세요
+    ```
+
+### 로컬에서 실행하기
 
 이 프로젝트를 로컬 환경에서 실행하려면 Node.js와 npm이 설치되어 있어야 합니다.
 
 ```sh
 # 1. 이 저장소를 클론합니다.
-git clone <YOUR_GIT_URL>
+git clone https://github.com/GeneratedByAIServices/template-scribe-mail.git
 
 # 2. 프로젝트 디렉터리로 이동합니다.
-cd sol-link-email-assistant/template-scribe-mail
+cd template-scribe-mail
 
 # 3. 의존성을 설치합니다.
 npm install
