@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
@@ -27,33 +26,9 @@ const RecipientSelector = ({ selectedRecipients, onRecipientsChange }: Recipient
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const filteredRecipients = recipients.filter(recipient => {
-    // 이미 선택된 받는 사람은 제외
-    if (selectedRecipients.find(selected => selected.id === recipient.id)) {
-      return false;
-    }
-    
-    // 검색어가 없으면 모든 받는 사람 표시
-    if (!search.trim()) {
-      return true;
-    }
-    
-    const searchTerm = search.toLowerCase().trim();
-    console.log('Searching for:', searchTerm);
-    console.log('Checking recipient:', recipient);
-    
-    // 각 필드에서 검색어 포함 여부 확인
-    const matchesName = recipient.name.toLowerCase().includes(searchTerm);
-    const matchesEmail = recipient.email.toLowerCase().includes(searchTerm);
-    const matchesPosition = recipient.position.toLowerCase().includes(searchTerm);
-    const matchesRole = recipient.role.toLowerCase().includes(searchTerm);
-    const matchesDepartment = recipient.department && recipient.department.toLowerCase().includes(searchTerm);
-    
-    const isMatch = matchesName || matchesEmail || matchesPosition || matchesRole || matchesDepartment;
-    console.log('Match result:', isMatch, { matchesName, matchesEmail, matchesPosition, matchesRole, matchesDepartment });
-    
-    return isMatch;
-  });
+  const unselectedRecipients = recipients.filter(
+    (recipient) => !selectedRecipients.find((selected) => selected.id === recipient.id)
+  );
 
   const handleSelect = (recipient: Recipient) => {
     onRecipientsChange([...selectedRecipients, recipient]);
@@ -97,30 +72,40 @@ const RecipientSelector = ({ selectedRecipients, onRecipientsChange }: Recipient
               <CommandInput 
                 placeholder="이름, 이메일, 직급으로 검색..."
                 value={search}
-                onValueChange={(value) => {
-                  console.log('Search value changed:', value);
-                  setSearch(value);
-                }}
+                onValueChange={setSearch}
                 className="border-0"
               />
               <CommandList className="max-h-48">
                 <CommandEmpty>검색 결과가 없습니다.</CommandEmpty>
                 <CommandGroup>
-                  {filteredRecipients.map((recipient) => (
-                    <CommandItem
-                      key={recipient.id}
-                      onSelect={() => handleSelect(recipient)}
-                      className="cursor-pointer"
-                    >
-                      <div className="flex flex-col">
-                        <div className="font-medium">{recipient.name}</div>
-                        <div className="text-sm text-gray-500">
-                          {recipient.position} · {recipient.role}
-                          {recipient.department && ` · ${recipient.department}`} · {recipient.email}
+                  {unselectedRecipients.map((recipient) => {
+                    const value = [
+                      recipient.name,
+                      recipient.email,
+                      recipient.position,
+                      recipient.role,
+                      recipient.department,
+                    ]
+                      .filter(Boolean)
+                      .join(' ');
+                    
+                    return (
+                      <CommandItem
+                        key={recipient.id}
+                        value={value}
+                        onSelect={() => handleSelect(recipient)}
+                        className="cursor-pointer"
+                      >
+                        <div className="flex flex-col">
+                          <div className="font-medium">{recipient.name}</div>
+                          <div className="text-sm text-gray-500">
+                            {recipient.position} · {recipient.role}
+                            {recipient.department && ` · ${recipient.department}`} · {recipient.email}
+                          </div>
                         </div>
-                      </div>
-                    </CommandItem>
-                  ))}
+                      </CommandItem>
+                    )
+                  })}
                 </CommandGroup>
               </CommandList>
             </Command>
